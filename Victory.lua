@@ -1728,19 +1728,6 @@ WorldSection:AddToggle({
 });
 
 WorldSection:AddToggle({
-    Name = "No Fog", Flag = "World_NoFog", Default = false,
-    Callback = function(v)
-        if v then
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 100000
-        else
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 0
-        end
-    end,
-});
-
-WorldSection:AddToggle({
     Name = "Custom Time", Flag = "World_TimeToggle", Default = false,
     Callback = function(v)
         if not v then
@@ -1755,13 +1742,6 @@ WorldConfigSection:AddColorPicker({
     Callback = function(v)
         Lighting.OutdoorAmbient = v
         Lighting.Ambient = v
-    end,
-});
-
-WorldConfigSection:AddColorPicker({
-    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
-    Callback = function(v)
-        Lighting.FogColor = v
     end,
 });
 
@@ -1783,33 +1763,6 @@ WorldConfigSection:AddSlider({
     Name = "Time of Day", Min = 0, Max = 24, Default = 14, Round = 0, Flag = "World_Time",
     Callback = function(v)
         Lighting.ClockTime = v
-    end,
-});
-
-WorldSection:AddToggle({
-    Name = "Fog", Flag = "World_Fog", Default = false,
-    Callback = function(v)
-        if v then
-            Lighting.FogEnd = 100
-            Lighting.FogStart = 0
-        else
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 0
-        end
-    end,
-});
-
-WorldConfigSection:AddSlider({
-    Name = "Fog Distance", Min = 1, Max = 1000, Default = 100, Round = 0, Flag = "World_FogDist",
-    Callback = function(v)
-        Lighting.FogEnd = v
-    end,
-});
-
-WorldConfigSection:AddColorPicker({
-    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
-    Callback = function(v)
-        Lighting.FogColor = v
     end,
 });
 
