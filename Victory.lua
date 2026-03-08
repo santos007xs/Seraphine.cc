@@ -2120,7 +2120,7 @@ local WalkspeedToggle = WalkspeedSection:AddToggle({
 });
 
 WalkspeedConfigSection:AddSlider({
-    Name = "Walkspeed", Min = 16, Max = 500, Default = 16, Round = 0, Flag = "Walkspeed_Value",
+    Name = "Walkspeed", Min = 16, Max = 1000, Default = 16, Round = 0, Flag = "Walkspeed_Value",
     Callback = function(v)
         getgenv().WalkSpeedValue = v
         if WalkspeedEnabled then
@@ -2218,92 +2218,6 @@ local MiscTab = Window:DrawTab({
 });
 local MiscSection = MiscTab:DrawSection({ Name = "Misc", Position = "left" });
 local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Position = "right" });
-
-local CustomCursorEnabled = false
-local CustomCursorImage = "rbxasset://textures/Cursors/DragCursor.png"
-local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-
-MiscSection:AddToggle({
-    Name = "Custom Cursor", Flag = "Misc_CustomCursor", Default = false,
-    Callback = function(v)
-        CustomCursorEnabled = v
-        if v then
-            mouse.Icon = CustomCursorImage
-        else
-            mouse.Icon = ""
-        end
-    end,
-});
-
-MiscConfigSection:AddTextbox({
-    Name = "Cursor URL", Flag = "Misc_CursorURL", Default = "rbxasset://textures/Cursors/DragCursor.png",
-    Callback = function(v)
-        CustomCursorImage = v
-        if CustomCursorEnabled then
-            mouse.Icon = CustomCursorImage
-        end
-    end,
-});
-
--- OU se preferir com dropdown de opções pré-definidas:
-
-MiscSection:AddToggle({
-    Name = "Custom Cursor", Flag = "Misc_CustomCursor", Default = false,
-    Callback = function(v)
-        CustomCursorEnabled = v
-        if v then
-            mouse.Icon = CustomCursorImage
-        else
-            mouse.Icon = ""
-        end
-    end,
-});
-
-MiscConfigSection:AddDropdown({
-    Name = "Cursor Style",
-    Default = "Default",
-    Flag = "Misc_CursorStyle",
-    Values = {
-        "Default",
-        "Drag",
-        "DragClosed",
-        "Forbidden",
-        "Heart",
-        "OpenHand",
-        "PointingHand",
-        "ResizeNESW",
-        "ResizeNS",
-        "ResizeNWSE",
-        "ResizeEW",
-        "Rotate",
-        "RotateCW",
-        "Wait",
-        "WaitArrow",
-    },
-    Callback = function(v)
-        local cursorMap = {
-            Default = "",
-            Drag = "rbxasset://textures/Cursors/DragCursor.png",
-            DragClosed = "rbxasset://textures/Cursors/DragClosedCursor.png",
-            Forbidden = "rbxasset://textures/Cursors/Forbidden.png",
-            Heart = "rbxasset://textures/Cursors/Heart.png",
-            OpenHand = "rbxasset://textures/Cursors/OpenHand.png",
-            PointingHand = "rbxasset://textures/Cursors/PointingHand.png",
-            ResizeNESW = "rbxasset://textures/Cursors/ResizeNESW.png",
-            ResizeNS = "rbxasset://textures/Cursors/ResizeNS.png",
-            ResizeNWSE = "rbxasset://textures/Cursors/ResizeNWSE.png",
-            ResizeEW = "rbxasset://textures/Cursors/ResizeEW.png",
-            Rotate = "rbxasset://textures/Cursors/Rotate.png",
-            RotateCW = "rbxasset://textures/Cursors/RotateCW.png",
-            Wait = "rbxasset://textures/Cursors/Wait.png",
-            WaitArrow = "rbxasset://textures/Cursors/WaitArrow.png",
-        }
-        CustomCursorImage = cursorMap[v] or ""
-        if CustomCursorEnabled then
-            mouse.Icon = CustomCursorImage
-        end
-    end,
-});
 
 
 local LuaTab = Window:DrawTab({
