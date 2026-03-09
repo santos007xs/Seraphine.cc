@@ -4,7 +4,7 @@ local RunService = game:GetService("RunService")
 
 local STATUS_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/status.json"
 local LastCheckTime = 0
-local CheckInterval = 10 -- Verificar a cada 10 segundos
+local CheckInterval = 1 -- Verificar a cada 10 segundos
 
 -- Função para fechar o Roblox
 local function CloseRoblox()
