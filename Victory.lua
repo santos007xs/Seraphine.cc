@@ -2288,42 +2288,151 @@ end)
 local AnimationSection = MiscTab:DrawSection({ Name = "Animations", Position = "left" });
 local AnimationConfigSection = MiscTab:DrawSection({ Name = "Animation Settings", Position = "right" });
 
--- Helper function para criar dropdowns
-local function CreateAnimationDropdown(sectionLeft, sectionRight, displayName, type)
-    sectionLeft:AddDropdown({
-        Name = displayName,
-        Default = "None",
-        Flag = "Animation_" .. type,
-        Values = getgenv().AnimationConfig and getgenv().AnimationConfig.AnimationList or {
-            "None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", 
-            "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", 
-            "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", 
-            "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"
-        },
-        Callback = function(v)
-            task.spawn(function()
-                pcall(function()
-                    if getgenv().AnimationConfig then
-                        getgenv().AnimationConfig.SetAnimation(type, v)
-                    end
-                end)
-            end)
-        end,
-    });
-end
-
 -- Criar dropdowns para cada tipo de animação
-CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Run", "run");
-CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Walk", "walk");
-CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Jump", "jump");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Idle 1", "idle1");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Idle 2", "idle2");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Fall", "fall");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Climb", "climb");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Swim", "swim");
-CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Swim Idle", "swimidle");
+AnimationSection:AddDropdown({
+    Name = "Run",
+    Default = "None",
+    Flag = "Animation_run",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("run", v)
+                end
+            end)
+        end)
+    end,
+});
 
--- Botão para aplicar todas as animações
+AnimationSection:AddDropdown({
+    Name = "Walk",
+    Default = "None",
+    Flag = "Animation_walk",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("walk", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationSection:AddDropdown({
+    Name = "Jump",
+    Default = "None",
+    Flag = "Animation_jump",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("jump", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Idle 1",
+    Default = "None",
+    Flag = "Animation_idle1",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("idle1", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Idle 2",
+    Default = "None",
+    Flag = "Animation_idle2",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("idle2", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Fall",
+    Default = "None",
+    Flag = "Animation_fall",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("fall", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Climb",
+    Default = "None",
+    Flag = "Animation_climb",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("climb", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Swim",
+    Default = "None",
+    Flag = "Animation_swim",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("swim", v)
+                end
+            end)
+        end)
+    end,
+});
+
+AnimationConfigSection:AddDropdown({
+    Name = "Swim Idle",
+    Default = "None",
+    Flag = "Animation_swimidle",
+    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
+    Callback = function(v)
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.SetAnimation("swimidle", v)
+                end
+            end)
+        end)
+    end,
+});
+
 AnimationSection:AddButton({
     Name = "Apply Animations",
     Callback = function()
@@ -2342,22 +2451,15 @@ AnimationSection:AddButton({
     end,
 });
 
--- Botão para resetar para None
 AnimationSection:AddButton({
     Name = "Reset Animations",
     Callback = function()
         task.spawn(function()
             pcall(function()
                 if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.Settings.run = "None"
-                    getgenv().AnimationConfig.Settings.walk = "None"
-                    getgenv().AnimationConfig.Settings.jump = "None"
-                    getgenv().AnimationConfig.Settings.idle1 = "None"
-                    getgenv().AnimationConfig.Settings.idle2 = "None"
-                    getgenv().AnimationConfig.Settings.fall = "None"
-                    getgenv().AnimationConfig.Settings.climb = "None"
-                    getgenv().AnimationConfig.Settings.swim = "None"
-                    getgenv().AnimationConfig.Settings.swimidle = "None"
+                    for key, _ in pairs(getgenv().AnimationConfig.Settings) do
+                        getgenv().AnimationConfig.Settings[key] = "None"
+                    end
                     
                     Notifier:Notify({
                         Title = "Animations",
