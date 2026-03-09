@@ -627,7 +627,7 @@ local MOUSELOCK_URL = "https://raw.githubusercontent.com/santos007xs/Victory/ref
 
 -- Carregar config do RAW
 task.spawn(function()
-    task.wait(1)
+    task.wait(2)
     pcall(function()
         local config = game:HttpGet(MOUSELOCK_URL)
         loadstring(config)()
@@ -641,20 +641,22 @@ local MouseLockSection = AimbotTab:DrawSection({ Name = "MouseLock", Position = 
 MouseLockSection:AddToggle({
     Name = "MouseLock", Flag = "MouseLock_Toggle", Default = false,
     Callback = function(v)
-        if not getgenv().MouseLockConfig then return end
-        
-        if v then
-            local started = getgenv().MouseLockConfig.Start()
-            if not started then
-                Notifier:Notify({
-                    Title = "MouseLock",
-                    Content = "Nenhum player detectado no FOV",
-                    Duration = 2,
-                })
+        pcall(function()
+            if not getgenv().MouseLockConfig then return end
+            
+            if v then
+                local started = getgenv().MouseLockConfig.Start()
+                if not started then
+                    Notifier:Notify({
+                        Title = "MouseLock",
+                        Content = "Nenhum player detectado no FOV",
+                        Duration = 2,
+                    })
+                end
+            else
+                getgenv().MouseLockConfig.Stop()
             end
-        else
-            getgenv().MouseLockConfig.Stop()
-        end
+        end)
     end,
 });
 
@@ -662,26 +664,27 @@ MouseLockSection:AddToggle({
 MouseLockSection:AddToggle({
     Name = "Show FOV", Flag = "MouseLock_ShowFov", Default = false,
     Callback = function(v)
-        if not getgenv().MouseLockConfig then return end
-        getgenv().MouseLockConfig.FovEnabled = v
-        
-        if v then
-            -- Criar círculo FOV se não existir
-            if not getgenv().MouseLockFovCircle then
-                local circle = Drawing.new("Circle")
-                circle.Visible = true
-                circle.Thickness = 2
-                circle.Filled = false
-                circle.Color = Color3.fromRGB(0, 255, 0)
-                getgenv().MouseLockFovCircle = circle
+        pcall(function()
+            if not getgenv().MouseLockConfig then return end
+            getgenv().MouseLockConfig.FovEnabled = v
+            
+            if v then
+                if not getgenv().MouseLockFovCircle then
+                    local circle = Drawing.new("Circle")
+                    circle.Visible = true
+                    circle.Thickness = 2
+                    circle.Filled = false
+                    circle.Color = Color3.fromRGB(0, 255, 0)
+                    getgenv().MouseLockFovCircle = circle
+                else
+                    getgenv().MouseLockFovCircle.Visible = true
+                end
             else
-                getgenv().MouseLockFovCircle.Visible = true
+                if getgenv().MouseLockFovCircle then
+                    getgenv().MouseLockFovCircle.Visible = false
+                end
             end
-        else
-            if getgenv().MouseLockFovCircle then
-                getgenv().MouseLockFovCircle.Visible = false
-            end
-        end
+        end)
     end,
 });
 
@@ -689,14 +692,15 @@ MouseLockSection:AddToggle({
 MouseLockSection:AddSlider({
     Name = "FOV Radius", Min = 10, Max = 500, Default = 100, Round = 0, Flag = "MouseLock_FovRadius",
     Callback = function(v)
-        if getgenv().MouseLockConfig then
-            getgenv().MouseLockConfig.SetRadius(v)
-        end
-        
-        -- Atualizar círculo FOV
-        if getgenv().MouseLockFovCircle then
-            getgenv().MouseLockFovCircle.Radius = v
-        end
+        pcall(function()
+            if getgenv().MouseLockConfig then
+                getgenv().MouseLockConfig.SetRadius(v)
+            end
+            
+            if getgenv().MouseLockFovCircle then
+                getgenv().MouseLockFovCircle.Radius = v
+            end
+        end)
     end,
 });
 
@@ -704,19 +708,25 @@ MouseLockSection:AddSlider({
 MouseLockSection:AddSlider({
     Name = "Smoothness", Min = 1, Max = 50, Default = 2, Round = 0, Flag = "MouseLock_Smoothness",
     Callback = function(v)
-        if getgenv().MouseLockConfig then
-            getgenv().MouseLockConfig.SetSmoothness(v / 10)
-        end
+        pcall(function()
+            if getgenv().MouseLockConfig then
+                getgenv().MouseLockConfig.SetSmoothness(v / 10)
+            end
+        end)
     end,
 });
 
 -- Atualizar círculo FOV a cada frame
 local mouseLockFovConn = RunService.RenderStepped:Connect(function()
-    if not getgenv().MouseLockFovCircle then return end
-    if not getgenv().MouseLockConfig.FovEnabled then return end
-    
-    local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-    getgenv().MouseLockFovCircle.Position = Vector2.new(mouse.X, mouse.Y)
+    pcall(function()
+        if not getgenv().MouseLockFovCircle then return end
+        if not getgenv().MouseLockConfig or not getgenv().MouseLockConfig.FovEnabled then return end
+        
+        local mouse = game:GetService("Players").LocalPlayer:GetMouse()
+        if mouse then
+            getgenv().MouseLockFovCircle.Position = Vector2.new(mouse.X, mouse.Y)
+        end
+    end)
 end)
 table.insert(_G.CompkillerConnections, mouseLockFovConn)
 
