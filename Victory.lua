@@ -2314,6 +2314,7 @@ MiscConfigSection:AddButton({
         end
     end,
 });
+
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
 });
