@@ -1,8 +1,4 @@
--- Animation Changer Configuration
--- Animações customizáveis por ação
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+-- Animation Changer Configuration - Sem Schedule Error
 
 -- Lista de animações disponíveis
 local AnimationList = {
@@ -56,22 +52,21 @@ local AnimSettings = {
 
 -- Função para aplicar animações
 local function ApplyAnimations()
-    -- Verificar se alguma animação está ativa
-    local hasAnimation = false
-    for _, anim in pairs(AnimSettings) do
-        if anim ~= "None" then
-            hasAnimation = true
-            break
-        end
-    end
-    
-    if not hasAnimation then
-        -- Se todas estão None, não fazer nada
-        return
-    end
-    
-    -- Aplicar configurações
     pcall(function()
+        local hasAnimation = false
+        for _, anim in pairs(AnimSettings) do
+            if anim ~= "None" then
+                hasAnimation = true
+                break
+            end
+        end
+        
+        if not hasAnimation then
+            return
+        end
+        
+        task.wait(0.5)
+        
         getgenv().HybridSettings = {
             run = AnimSettings.run == "None" and "Default" or AnimSettings.run,
             walk = AnimSettings.walk == "None" and "Default" or AnimSettings.walk,
@@ -87,8 +82,11 @@ local function ApplyAnimations()
         getgenv().ChosenBundleName = "Mage"
         getgenv().EnableHybridCustom = true
         
-        -- Carregar o script de animações
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Mautiku/Animation/refs/heads/main/Animation%20Changer%20v3%20Stable"))()
+        task.spawn(function()
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/Mautiku/Animation/refs/heads/main/Animation%20Changer%20v3%20Stable"))()
+            end)
+        end)
     end)
 end
 
@@ -100,7 +98,6 @@ getgenv().AnimationConfig = {
     SetAnimation = function(type, anim)
         if AnimSettings[type] then
             AnimSettings[type] = anim
-            ApplyAnimations()
         end
     end,
     GetAnimation = function(type)
