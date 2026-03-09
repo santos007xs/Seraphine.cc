@@ -2277,7 +2277,7 @@ local ANIMATION_URL = "https://raw.githubusercontent.com/santos007xs/Victory/ref
 
 -- Carregar config do RAW
 task.spawn(function()
-    task.wait(2)
+    task.wait(3)
     pcall(function()
         local config = game:HttpGet(ANIMATION_URL)
         loadstring(config)()
