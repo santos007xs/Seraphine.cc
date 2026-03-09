@@ -1,15 +1,13 @@
--- MouseLock Configuration
--- Aim lock baseado em posição do mouse
+-- MouseLock Configuration - Sem Schedule Error
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local Mouse = pcall(function() return LocalPlayer:GetMouse() end) and LocalPlayer:GetMouse() or nil
 
 -- Variáveis
 local MouseLockEnabled = false
-local MouseLockFovEnabled = false
 local AimRadius = 100
 local TargetPlayer = nil
 local Smoothness = 0.2
@@ -17,21 +15,25 @@ local MouseLockConnection = nil
 
 -- Função para obter jogador mais próximo
 local function GetClosestPlayer()
+    if not Mouse then return nil end
+    
     local closestPlayer = nil
     local shortestDistance = AimRadius
     
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local character = player.Character
-            local head = character:FindFirstChild("Head")
-            local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(head.Position)
-            
-            if onScreen then
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
-                if distance < shortestDistance then
-                    closestPlayer = player
-                    shortestDistance = distance
-                end
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                pcall(function()
+                    local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(head.Position)
+                    if onScreen then
+                        local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                        if distance < shortestDistance then
+                            closestPlayer = player
+                            shortestDistance = distance
+                        end
+                    end
+                end)
             end
         end
     end
@@ -41,6 +43,8 @@ end
 
 -- Função para ativar MouseLock
 local function StartMouseLock()
+    if not Mouse then return false end
+    
     if MouseLockConnection then
         MouseLockConnection:Disconnect()
     end
@@ -69,11 +73,13 @@ local function StartMouseLock()
             return
         end
         
-        local screenPos = workspace.CurrentCamera:WorldToScreenPoint(head.Position)
-        local targetX = (screenPos.X - Mouse.X) * Smoothness
-        local targetY = (screenPos.Y - Mouse.Y) * Smoothness
-        
-        mousemoverel(targetX, targetY)
+        pcall(function()
+            local screenPos = workspace.CurrentCamera:WorldToScreenPoint(head.Position)
+            local targetX = (screenPos.X - Mouse.X) * Smoothness
+            local targetY = (screenPos.Y - Mouse.Y) * Smoothness
+            
+            mousemoverel(targetX, targetY)
+        end)
     end)
     
     return true
@@ -84,7 +90,9 @@ local function StopMouseLock()
     MouseLockEnabled = false
     TargetPlayer = nil
     if MouseLockConnection then
-        MouseLockConnection:Disconnect()
+        pcall(function()
+            MouseLockConnection:Disconnect()
+        end)
         MouseLockConnection = nil
     end
 end
