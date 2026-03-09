@@ -1,54 +1,98 @@
--- Custom Cursor Configuration
--- Este arquivo deve ser colocado no GitHub e referenciado como RAW
+-- Adicione este código APÓS as seções do Misc
 
--- Definir as opções de cursor disponíveis
-local CursorOptions = {
-    Default = "",
-    Drag = "rbxasset://textures/Cursors/DragCursor.png",
-    DragClosed = "rbxasset://textures/Cursors/DragClosedCursor.png",
-    Forbidden = "rbxasset://textures/Cursors/Forbidden.png",
-    Heart = "rbxasset://textures/Cursors/Heart.png",
-    OpenHand = "rbxasset://textures/Cursors/OpenHand.png",
-    PointingHand = "rbxasset://textures/Cursors/PointingHand.png",
-    ResizeNESW = "rbxasset://textures/Cursors/ResizeNESW.png",
-    ResizeNS = "rbxasset://textures/Cursors/ResizeNS.png",
-    ResizeNWSE = "rbxasset://textures/Cursors/ResizeNWSE.png",
-    ResizeEW = "rbxasset://textures/Cursors/ResizeEW.png",
-    Rotate = "rbxasset://textures/Cursors/Rotate.png",
-    RotateCW = "rbxasset://textures/Cursors/RotateCW.png",
-    Wait = "rbxasset://textures/Cursors/Wait.png",
-    WaitArrow = "rbxasset://textures/Cursors/WaitArrow.png",
-}
+-- URL do RAW no GitHub (substitua pela sua URL)
+local CURSOR_CONFIG_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/cursor_raw_config.lua"
 
--- Aplicar cursor padrão ao carregar
+local CustomCursorEnabled = false
 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
--- Função para aplicar cursor
-local function ApplyCursor(cursorName)
-    local cursorImage = CursorOptions[cursorName]
-    if cursorImage then
-        mouse.Icon = cursorImage
-        return true
+-- Carregar configuração do RAW com proteção
+local function LoadCursorConfig()
+    local success, result = pcall(function()
+        return game:HttpGet(CURSOR_CONFIG_URL)
+    end)
+    
+    if success and result then
+        local loadSuccess = pcall(function()
+            loadstring(result)()
+        end)
+        return loadSuccess
+    else
+        warn("Erro ao carregar config de cursor: " .. tostring(result))
+        return false
     end
-    return false
 end
 
--- Função para obter lista de cursores disponíveis
-local function GetAvailableCursors()
-    local list = {}
-    for name, _ in pairs(CursorOptions) do
-        table.insert(list, name)
-    end
-    return list
-end
+-- Carregar config em thread separada
+task.spawn(function()
+    task.wait(1)
+    LoadCursorConfig()
+end)
 
--- Exportar para uso global
-getgenv().CustomCursorConfig = {
-    Options = CursorOptions,
-    ApplyCursor = ApplyCursor,
-    GetAvailableCursors = GetAvailableCursors,
-    CurrentCursor = "Default",
-}
+-- Toggle para ativar/desativar
+MiscSection:AddToggle({
+    Name = "Custom Cursor", Flag = "Misc_CustomCursor", Default = false,
+    Callback = function(v)
+        CustomCursorEnabled = v
+        pcall(function()
+            if not v then
+                mouse.Icon = ""
+            elseif getgenv().CustomCursorConfig then
+                local current = getgenv().CustomCursorConfig.CurrentCursor or "Default"
+                getgenv().CustomCursorConfig.ApplyCursor(current)
+            end
+        end)
+    end,
+});
 
--- Aplicar cursor padrão
-ApplyCursor("Default")
+-- Dropdown para selecionar cursor
+MiscConfigSection:AddDropdown({
+    Name = "Cursor Style",
+    Default = "Default",
+    Flag = "Misc_CursorStyle",
+    Values = {
+        "Default",
+        "Drag",
+        "DragClosed",
+        "Forbidden",
+        "Heart",
+        "OpenHand",
+        "PointingHand",
+        "ResizeNESW",
+        "ResizeNS",
+        "ResizeNWSE",
+        "ResizeEW",
+        "Rotate",
+        "RotateCW",
+        "Wait",
+        "WaitArrow",
+    },
+    Callback = function(v)
+        pcall(function()
+            if CustomCursorEnabled and getgenv().CustomCursorConfig then
+                getgenv().CustomCursorConfig.CurrentCursor = v
+                getgenv().CustomCursorConfig.ApplyCursor(v)
+            end
+        end)
+    end,
+});
+
+-- Botão para recarregar do RAW
+MiscConfigSection:AddButton({
+    Name = "Reload from RAW",
+    Callback = function()
+        if LoadCursorConfig() then
+            Notifier:Notify({
+                Title = "Custom Cursor",
+                Content = "Config recarregada com sucesso!",
+                Duration = 2,
+            })
+        else
+            Notifier:Notify({
+                Title = "Custom Cursor",
+                Content = "Erro ao recarregar config",
+                Duration = 3,
+            })
+        end
+    end,
+});
