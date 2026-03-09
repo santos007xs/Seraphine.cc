@@ -2219,6 +2219,44 @@ local MiscTab = Window:DrawTab({
 local MiscSection = MiscTab:DrawSection({ Name = "Misc", Position = "left" });
 local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Position = "right" });
 
+-- Adicione este código LOGO APÓS as linhas do MiscConfigSection:
+-- local MiscSection = MiscTab:DrawSection({...});
+-- local MiscConfigSection = MiscTab:DrawSection({...});
+
+local FPS_DISPLAY_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/fps_display_raw.lua"
+
+-- Carregar config do RAW
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local config = game:HttpGet(FPS_DISPLAY_URL)
+        loadstring(config)()
+    end)
+end)
+
+-- Toggle para mostrar/esconder FPS customizado
+MiscSection:AddToggle({
+    Name = "Custom FPS Display", Flag = "Misc_CustomFpsDisplay", Default = false,
+    Callback = function(v)
+        if not v then return end
+        
+        if getgenv().FpsDisplayConfig then
+            local currentFps = getgenv().FpsDisplayConfig.CurrentFps or 60
+            getgenv().FpsDisplayConfig.UpdateDisplay(currentFps)
+        end
+    end,
+});
+
+-- Slider para ajustar o número de FPS exibido
+MiscConfigSection:AddSlider({
+    Name = "FPS Display Value", Min = 10, Max = 999, Default = 60, Round = 0, Flag = "Misc_FpsDisplayValue",
+    Callback = function(v)
+        if getgenv().FpsDisplayConfig then
+            getgenv().FpsDisplayConfig.CurrentFps = v
+            getgenv().FpsDisplayConfig.UpdateDisplay(v)
+        end
+    end,
+});
 
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
