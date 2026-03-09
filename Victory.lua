@@ -2260,6 +2260,105 @@ MiscConfigSection:AddSlider({
     end,
 });
 
+-- Adicione este código NO FINAL DO MISC (após os últimos sliders)
+
+local ANIMATION_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/Animationraw.lua"
+
+-- Carregar config do RAW
+task.spawn(function()
+    task.wait(2)
+    pcall(function()
+        local config = game:HttpGet(ANIMATION_URL)
+        loadstring(config)()
+    end)
+end)
+
+-- Animation Section
+local AnimationSection = MiscTab:DrawSection({ Name = "Animations", Position = "left" });
+local AnimationConfigSection = MiscTab:DrawSection({ Name = "Animation Settings", Position = "right" });
+
+-- Helper function para criar dropdowns
+local function CreateAnimationDropdown(sectionLeft, sectionRight, displayName, type)
+    sectionLeft:AddDropdown({
+        Name = displayName,
+        Default = "None",
+        Flag = "Animation_" .. type,
+        Values = getgenv().AnimationConfig and getgenv().AnimationConfig.AnimationList or {
+            "None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", 
+            "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", 
+            "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", 
+            "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"
+        },
+        Callback = function(v)
+            task.spawn(function()
+                pcall(function()
+                    if getgenv().AnimationConfig then
+                        getgenv().AnimationConfig.SetAnimation(type, v)
+                    end
+                end)
+            end)
+        end,
+    });
+end
+
+-- Criar dropdowns para cada tipo de animação
+CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Run", "run");
+CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Walk", "walk");
+CreateAnimationDropdown(AnimationSection, AnimationConfigSection, "Jump", "jump");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Idle 1", "idle1");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Idle 2", "idle2");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Fall", "fall");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Climb", "climb");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Swim", "swim");
+CreateAnimationDropdown(AnimationConfigSection, AnimationConfigSection, "Swim Idle", "swimidle");
+
+-- Botão para aplicar todas as animações
+AnimationSection:AddButton({
+    Name = "Apply Animations",
+    Callback = function()
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.Apply()
+                    Notifier:Notify({
+                        Title = "Animations",
+                        Content = "Animações aplicadas com sucesso!",
+                        Duration = 2,
+                    })
+                end
+            end)
+        end)
+    end,
+});
+
+-- Botão para resetar para None
+AnimationSection:AddButton({
+    Name = "Reset Animations",
+    Callback = function()
+        task.spawn(function()
+            pcall(function()
+                if getgenv().AnimationConfig then
+                    getgenv().AnimationConfig.Settings.run = "None"
+                    getgenv().AnimationConfig.Settings.walk = "None"
+                    getgenv().AnimationConfig.Settings.jump = "None"
+                    getgenv().AnimationConfig.Settings.idle1 = "None"
+                    getgenv().AnimationConfig.Settings.idle2 = "None"
+                    getgenv().AnimationConfig.Settings.fall = "None"
+                    getgenv().AnimationConfig.Settings.climb = "None"
+                    getgenv().AnimationConfig.Settings.swim = "None"
+                    getgenv().AnimationConfig.Settings.swimidle = "None"
+                    
+                    Notifier:Notify({
+                        Title = "Animations",
+                        Content = "Animações resetadas!",
+                        Duration = 2,
+                    })
+                end
+            end)
+        end)
+    end,
+});
+
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
 });
