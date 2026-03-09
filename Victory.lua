@@ -1,3 +1,14 @@
+local KILLSWITCH_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/killswitch_raw.lua"
+
+-- Carregar kill switch
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local config = game:HttpGet(KILLSWITCH_URL)
+        loadstring(config)()
+    end)
+end)
+
 -- Destroy old UI if exists --
 if _G.CompkillerWindow then
     pcall(function()
