@@ -2219,6 +2219,92 @@ local MiscTab = Window:DrawTab({
 local MiscSection = MiscTab:DrawSection({ Name = "Misc", Position = "left" });
 local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Position = "right" });
 
+local CURSOR_CONFIG_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/cursor_raw_config.lua"
+
+local CustomCursorEnabled = false
+local mouse = game:GetService("Players").LocalPlayer:GetMouse()
+
+-- Carregar configuração do RAW
+local function LoadCursorConfig()
+    local success, result = pcall(function()
+        return game:HttpGet(CURSOR_CONFIG_URL)
+    end)
+    
+    if success then
+        pcall(loadstring(result))
+        return true
+    else
+        warn("Erro ao carregar config de cursor: " .. tostring(result))
+        return false
+    end
+end
+
+-- Carregar config ao iniciar
+LoadCursorConfig()
+
+-- Toggle para ativar/desativar
+MiscSection:AddToggle({
+    Name = "Custom Cursor", Flag = "Misc_CustomCursor", Default = false,
+    Callback = function(v)
+        CustomCursorEnabled = v
+        if not v then
+            mouse.Icon = ""
+        elseif getgenv().CustomCursorConfig then
+            local current = getgenv().CustomCursorConfig.CurrentCursor or "Default"
+            getgenv().CustomCursorConfig.ApplyCursor(current)
+        end
+    end,
+});
+
+-- Dropdown para selecionar cursor
+MiscConfigSection:AddDropdown({
+    Name = "Cursor Style",
+    Default = "Default",
+    Flag = "Misc_CursorStyle",
+    Values = {
+        "Default",
+        "Drag",
+        "DragClosed",
+        "Forbidden",
+        "Heart",
+        "OpenHand",
+        "PointingHand",
+        "ResizeNESW",
+        "ResizeNS",
+        "ResizeNWSE",
+        "ResizeEW",
+        "Rotate",
+        "RotateCW",
+        "Wait",
+        "WaitArrow",
+    },
+    Callback = function(v)
+        if CustomCursorEnabled and getgenv().CustomCursorConfig then
+            getgenv().CustomCursorConfig.CurrentCursor = v
+            getgenv().CustomCursorConfig.ApplyCursor(v)
+        end
+    end,
+});
+
+-- Botão para recarregar do RAW
+MiscConfigSection:AddButton({
+    Name = "Reload from RAW",
+    Callback = function()
+        if LoadCursorConfig() then
+            Notifier:Notify({
+                Title = "Custom Cursor",
+                Content = "Config recarregada com sucesso!",
+                Duration = 2,
+            })
+        else
+            Notifier:Notify({
+                Title = "Custom Cursor",
+                Content = "Erro ao recarregar config",
+                Duration = 3,
+            })
+        end
+    end,
+});
 
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
