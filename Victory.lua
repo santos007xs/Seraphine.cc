@@ -2223,7 +2223,7 @@ local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Po
 -- local MiscSection = MiscTab:DrawSection({...});
 -- local MiscConfigSection = MiscTab:DrawSection({...});
 
-local FPS_DISPLAY_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/fps_display_raw.lua"
+local FPS_DISPLAY_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/fpsvs.lua"
 
 -- Carregar config do RAW
 task.spawn(function()
