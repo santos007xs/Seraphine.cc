@@ -1,3 +1,14 @@
+local KILLSWITCH_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/killswitch_raw.lua"
+
+-- Carregar kill switch
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local config = game:HttpGet(KILLSWITCH_URL)
+        loadstring(config)()
+    end)
+end)
+
 -- Destroy old UI if exists --
 if _G.CompkillerWindow then
     pcall(function()
@@ -619,6 +630,8 @@ AimbotConfigSection:AddDropdown({
         CamlockTarget = nil
     end,
 });
+
+
 
 AimbotConfigSection:AddSlider({
     Name = "Smooth", Min = 1, Max = 50, Default = 10, Round = 0, Flag = "Camlock_Smooth",
@@ -1728,19 +1741,6 @@ WorldSection:AddToggle({
 });
 
 WorldSection:AddToggle({
-    Name = "No Fog", Flag = "World_NoFog", Default = false,
-    Callback = function(v)
-        if v then
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 100000
-        else
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 0
-        end
-    end,
-});
-
-WorldSection:AddToggle({
     Name = "Custom Time", Flag = "World_TimeToggle", Default = false,
     Callback = function(v)
         if not v then
@@ -1755,13 +1755,6 @@ WorldConfigSection:AddColorPicker({
     Callback = function(v)
         Lighting.OutdoorAmbient = v
         Lighting.Ambient = v
-    end,
-});
-
-WorldConfigSection:AddColorPicker({
-    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
-    Callback = function(v)
-        Lighting.FogColor = v
     end,
 });
 
@@ -1783,33 +1776,6 @@ WorldConfigSection:AddSlider({
     Name = "Time of Day", Min = 0, Max = 24, Default = 14, Round = 0, Flag = "World_Time",
     Callback = function(v)
         Lighting.ClockTime = v
-    end,
-});
-
-WorldSection:AddToggle({
-    Name = "Fog", Flag = "World_Fog", Default = false,
-    Callback = function(v)
-        if v then
-            Lighting.FogEnd = 100
-            Lighting.FogStart = 0
-        else
-            Lighting.FogEnd = 100000
-            Lighting.FogStart = 0
-        end
-    end,
-});
-
-WorldConfigSection:AddSlider({
-    Name = "Fog Distance", Min = 1, Max = 1000, Default = 100, Round = 0, Flag = "World_FogDist",
-    Callback = function(v)
-        Lighting.FogEnd = v
-    end,
-});
-
-WorldConfigSection:AddColorPicker({
-    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
-    Callback = function(v)
-        Lighting.FogColor = v
     end,
 });
 
@@ -2167,7 +2133,7 @@ local WalkspeedToggle = WalkspeedSection:AddToggle({
 });
 
 WalkspeedConfigSection:AddSlider({
-    Name = "Walkspeed", Min = 16, Max = 500, Default = 16, Round = 0, Flag = "Walkspeed_Value",
+    Name = "Walkspeed", Min = 16, Max = 1000, Default = 16, Round = 0, Flag = "Walkspeed_Value",
     Callback = function(v)
         getgenv().WalkSpeedValue = v
         if WalkspeedEnabled then
@@ -2265,6 +2231,46 @@ local MiscTab = Window:DrawTab({
 });
 local MiscSection = MiscTab:DrawSection({ Name = "Misc", Position = "left" });
 local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Position = "right" });
+
+-- Adicione este código LOGO APÓS as linhas do MiscConfigSection:
+-- local MiscSection = MiscTab:DrawSection({...});
+-- local MiscConfigSection = MiscTab:DrawSection({...});
+
+local FPS_DISPLAY_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/fpsvs.lua"
+
+-- Carregar config do RAW
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local config = game:HttpGet(FPS_DISPLAY_URL)
+        loadstring(config)()
+    end)
+end)
+
+-- Toggle para mostrar/esconder FPS customizado
+MiscSection:AddToggle({
+    Name = "Custom FPS Display", Flag = "Misc_CustomFpsDisplay", Default = false,
+    Callback = function(v)
+        if not v then return end
+        
+        if getgenv().FpsDisplayConfig then
+            local currentFps = getgenv().FpsDisplayConfig.CurrentFps or 60
+            getgenv().FpsDisplayConfig.UpdateDisplay(currentFps)
+        end
+    end,
+});
+
+-- Slider para ajustar o número de FPS exibido
+MiscConfigSection:AddSlider({
+    Name = "FPS Display Value", Min = 10, Max = 999, Default = 60, Round = 0, Flag = "Misc_FpsDisplayValue",
+    Callback = function(v)
+        if getgenv().FpsDisplayConfig then
+            getgenv().FpsDisplayConfig.CurrentFps = v
+            getgenv().FpsDisplayConfig.UpdateDisplay(v)
+        end
+    end,
+});
+
 
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
