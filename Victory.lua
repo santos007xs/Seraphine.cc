@@ -1,14 +1,3 @@
-local KILLSWITCH_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/status.lua"
-
--- Carregar kill switch
-task.spawn(function()
-    task.wait(1)
-    pcall(function()
-        local config = game:HttpGet(KILLSWITCH_URL)
-        loadstring(config)()
-    end)
-end)
-
 -- Destroy old UI if exists --
 if _G.CompkillerWindow then
     pcall(function()
@@ -630,8 +619,6 @@ AimbotConfigSection:AddDropdown({
         CamlockTarget = nil
     end,
 });
-
-
 
 AimbotConfigSection:AddSlider({
     Name = "Smooth", Min = 1, Max = 50, Default = 10, Round = 0, Flag = "Camlock_Smooth",
@@ -1741,6 +1728,19 @@ WorldSection:AddToggle({
 });
 
 WorldSection:AddToggle({
+    Name = "No Fog", Flag = "World_NoFog", Default = false,
+    Callback = function(v)
+        if v then
+            Lighting.FogEnd = 100000
+            Lighting.FogStart = 100000
+        else
+            Lighting.FogEnd = 100000
+            Lighting.FogStart = 0
+        end
+    end,
+});
+
+WorldSection:AddToggle({
     Name = "Custom Time", Flag = "World_TimeToggle", Default = false,
     Callback = function(v)
         if not v then
@@ -1755,6 +1755,13 @@ WorldConfigSection:AddColorPicker({
     Callback = function(v)
         Lighting.OutdoorAmbient = v
         Lighting.Ambient = v
+    end,
+});
+
+WorldConfigSection:AddColorPicker({
+    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
+    Callback = function(v)
+        Lighting.FogColor = v
     end,
 });
 
@@ -1776,6 +1783,33 @@ WorldConfigSection:AddSlider({
     Name = "Time of Day", Min = 0, Max = 24, Default = 14, Round = 0, Flag = "World_Time",
     Callback = function(v)
         Lighting.ClockTime = v
+    end,
+});
+
+WorldSection:AddToggle({
+    Name = "Fog", Flag = "World_Fog", Default = false,
+    Callback = function(v)
+        if v then
+            Lighting.FogEnd = 100
+            Lighting.FogStart = 0
+        else
+            Lighting.FogEnd = 100000
+            Lighting.FogStart = 0
+        end
+    end,
+});
+
+WorldConfigSection:AddSlider({
+    Name = "Fog Distance", Min = 1, Max = 1000, Default = 100, Round = 0, Flag = "World_FogDist",
+    Callback = function(v)
+        Lighting.FogEnd = v
+    end,
+});
+
+WorldConfigSection:AddColorPicker({
+    Name = "Fog Color", Default = Color3.fromRGB(192, 192, 192), Flag = "World_FogColor",
+    Callback = function(v)
+        Lighting.FogColor = v
     end,
 });
 
@@ -2133,7 +2167,7 @@ local WalkspeedToggle = WalkspeedSection:AddToggle({
 });
 
 WalkspeedConfigSection:AddSlider({
-    Name = "Walkspeed", Min = 16, Max = 1000, Default = 16, Round = 0, Flag = "Walkspeed_Value",
+    Name = "Walkspeed", Min = 16, Max = 500, Default = 16, Round = 0, Flag = "Walkspeed_Value",
     Callback = function(v)
         getgenv().WalkSpeedValue = v
         if WalkspeedEnabled then
@@ -2231,246 +2265,6 @@ local MiscTab = Window:DrawTab({
 });
 local MiscSection = MiscTab:DrawSection({ Name = "Misc", Position = "left" });
 local MiscConfigSection = MiscTab:DrawSection({ Name = "Misc Configurations", Position = "right" });
-
--- Adicione este código LOGO APÓS as linhas do MiscConfigSection:
--- local MiscSection = MiscTab:DrawSection({...});
--- local MiscConfigSection = MiscTab:DrawSection({...});
-
-local FPS_DISPLAY_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/fpsvs.lua"
-
--- Carregar config do RAW
-task.spawn(function()
-    task.wait(1)
-    pcall(function()
-        local config = game:HttpGet(FPS_DISPLAY_URL)
-        loadstring(config)()
-    end)
-end)
-
--- Toggle para mostrar/esconder FPS customizado
-MiscSection:AddToggle({
-    Name = "Custom FPS Display", Flag = "Misc_CustomFpsDisplay", Default = false,
-    Callback = function(v)
-        if not v then return end
-        
-        if getgenv().FpsDisplayConfig then
-            local currentFps = getgenv().FpsDisplayConfig.CurrentFps or 60
-            getgenv().FpsDisplayConfig.UpdateDisplay(currentFps)
-        end
-    end,
-});
-
--- Slider para ajustar o número de FPS exibido
-MiscConfigSection:AddSlider({
-    Name = "FPS Display Value", Min = 10, Max = 999, Default = 60, Round = 0, Flag = "Misc_FpsDisplayValue",
-    Callback = function(v)
-        if getgenv().FpsDisplayConfig then
-            getgenv().FpsDisplayConfig.CurrentFps = v
-            getgenv().FpsDisplayConfig.UpdateDisplay(v)
-        end
-    end,
-});
-
--- Adicione este código NO FINAL DO MISC (após os últimos sliders)
-
-local ANIMATION_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/Animationraw.lua"
-
--- Carregar config do RAW
-task.spawn(function()
-    task.wait(3)
-    pcall(function()
-        local config = game:HttpGet(ANIMATION_URL)
-        loadstring(config)()
-    end)
-end)
-
--- Animation Section
-local AnimationSection = MiscTab:DrawSection({ Name = "Animations", Position = "left" });
-local AnimationConfigSection = MiscTab:DrawSection({ Name = "Animation Settings", Position = "right" });
-
--- Criar dropdowns para cada tipo de animação
-AnimationSection:AddDropdown({
-    Name = "Run",
-    Default = "None",
-    Flag = "Animation_run",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("run", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationSection:AddDropdown({
-    Name = "Walk",
-    Default = "None",
-    Flag = "Animation_walk",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("walk", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationSection:AddDropdown({
-    Name = "Jump",
-    Default = "None",
-    Flag = "Animation_jump",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("jump", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Idle 1",
-    Default = "None",
-    Flag = "Animation_idle1",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("idle1", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Idle 2",
-    Default = "None",
-    Flag = "Animation_idle2",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("idle2", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Fall",
-    Default = "None",
-    Flag = "Animation_fall",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("fall", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Climb",
-    Default = "None",
-    Flag = "Animation_climb",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("climb", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Swim",
-    Default = "None",
-    Flag = "Animation_swim",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("swim", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationConfigSection:AddDropdown({
-    Name = "Swim Idle",
-    Default = "None",
-    Flag = "Animation_swimidle",
-    Values = {"None", "Ninja", "Robot", "Default", "Rthro", "Levitate", "Mage", "Stylish", "Hero", "Toy", "Astronaut", "Bubbly", "Cartoony", "Elder", "Ghost", "Knight", "Vampire", "Werewolf", "Zombie", "Bold", "Adidas", "Catwalk", "Walmart", "Wicked", "NFL", "Pirate", "Adidas2", "Oldschool", "Unboxed", "Aura", "Wicked2", "Ud", "Toilet"},
-    Callback = function(v)
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.SetAnimation("swimidle", v)
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationSection:AddButton({
-    Name = "Apply Animations",
-    Callback = function()
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    getgenv().AnimationConfig.Apply()
-                    Notifier:Notify({
-                        Title = "Animations",
-                        Content = "Animações aplicadas com sucesso!",
-                        Duration = 2,
-                    })
-                end
-            end)
-        end)
-    end,
-});
-
-AnimationSection:AddButton({
-    Name = "Reset Animations",
-    Callback = function()
-        task.spawn(function()
-            pcall(function()
-                if getgenv().AnimationConfig then
-                    for key, _ in pairs(getgenv().AnimationConfig.Settings) do
-                        getgenv().AnimationConfig.Settings[key] = "None"
-                    end
-                    
-                    Notifier:Notify({
-                        Title = "Animations",
-                        Content = "Animações resetadas!",
-                        Duration = 2,
-                    })
-                end
-            end)
-        end)
-    end,
-});
 
 local LuaTab = Window:DrawTab({
     Name = ".lua", Icon = "code", Type = "Single", EnableScrolling = true
