@@ -620,6 +620,106 @@ AimbotConfigSection:AddDropdown({
     end,
 });
 
+-- Adicione este código NA MESMA ABA DO AIMBOT (AimbotTab)
+-- Logo após o último item do Aimbot
+
+local MOUSELOCK_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/mouselock.lua"
+
+-- Carregar config do RAW
+task.spawn(function()
+    task.wait(1)
+    pcall(function()
+        local config = game:HttpGet(MOUSELOCK_URL)
+        loadstring(config)()
+    end)
+end)
+
+-- MouseLock Section
+local MouseLockSection = AimbotTab:DrawSection({ Name = "MouseLock", Position = "left" });
+
+-- Toggle MouseLock
+MouseLockSection:AddToggle({
+    Name = "MouseLock", Flag = "MouseLock_Toggle", Default = false,
+    Callback = function(v)
+        if not getgenv().MouseLockConfig then return end
+        
+        if v then
+            local started = getgenv().MouseLockConfig.Start()
+            if not started then
+                Notifier:Notify({
+                    Title = "MouseLock",
+                    Content = "Nenhum player detectado no FOV",
+                    Duration = 2,
+                })
+            end
+        else
+            getgenv().MouseLockConfig.Stop()
+        end
+    end,
+});
+
+-- Toggle FOV Circle
+MouseLockSection:AddToggle({
+    Name = "Show FOV", Flag = "MouseLock_ShowFov", Default = false,
+    Callback = function(v)
+        if not getgenv().MouseLockConfig then return end
+        getgenv().MouseLockConfig.FovEnabled = v
+        
+        if v then
+            -- Criar círculo FOV se não existir
+            if not getgenv().MouseLockFovCircle then
+                local circle = Drawing.new("Circle")
+                circle.Visible = true
+                circle.Thickness = 2
+                circle.Filled = false
+                circle.Color = Color3.fromRGB(0, 255, 0)
+                getgenv().MouseLockFovCircle = circle
+            else
+                getgenv().MouseLockFovCircle.Visible = true
+            end
+        else
+            if getgenv().MouseLockFovCircle then
+                getgenv().MouseLockFovCircle.Visible = false
+            end
+        end
+    end,
+});
+
+-- Slider FOV Radius
+MouseLockSection:AddSlider({
+    Name = "FOV Radius", Min = 10, Max = 500, Default = 100, Round = 0, Flag = "MouseLock_FovRadius",
+    Callback = function(v)
+        if getgenv().MouseLockConfig then
+            getgenv().MouseLockConfig.SetRadius(v)
+        end
+        
+        -- Atualizar círculo FOV
+        if getgenv().MouseLockFovCircle then
+            getgenv().MouseLockFovCircle.Radius = v
+        end
+    end,
+});
+
+-- Slider Smoothness
+MouseLockSection:AddSlider({
+    Name = "Smoothness", Min = 1, Max = 50, Default = 2, Round = 0, Flag = "MouseLock_Smoothness",
+    Callback = function(v)
+        if getgenv().MouseLockConfig then
+            getgenv().MouseLockConfig.SetSmoothness(v / 10)
+        end
+    end,
+});
+
+-- Atualizar círculo FOV a cada frame
+local mouseLockFovConn = RunService.RenderStepped:Connect(function()
+    if not getgenv().MouseLockFovCircle then return end
+    if not getgenv().MouseLockConfig.FovEnabled then return end
+    
+    local mouse = game:GetService("Players").LocalPlayer:GetMouse()
+    getgenv().MouseLockFovCircle.Position = Vector2.new(mouse.X, mouse.Y)
+end)
+table.insert(_G.CompkillerConnections, mouseLockFovConn)
+
 AimbotConfigSection:AddSlider({
     Name = "Smooth", Min = 1, Max = 50, Default = 10, Round = 0, Flag = "Camlock_Smooth",
     Callback = function(v) CamlockSmooth = v end,
