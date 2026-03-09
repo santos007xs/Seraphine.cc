@@ -1,4 +1,4 @@
-local KILLSWITCH_URL = "https://raw.githubusercontent.com/seu-usuario/seu-repo/refs/heads/main/killswitch_raw.lua"
+local KILLSWITCH_URL = "https://raw.githubusercontent.com/santos007xs/Victory/refs/heads/main/modules/status.lua"
 
 -- Carregar kill switch
 task.spawn(function()
