@@ -1132,22 +1132,71 @@ local RagebotSection2 = RagebotTab:DrawSection({ Name = "Players", Position = "r
 local RagebotSection3 = RagebotTab:DrawSection({ Name = "Target", Position = "left" });
 local RagebotSection4 = RagebotTab:DrawSection({ Name = "Target Configurations", Position = "right" });
 
--- Toggles --
+local RagebotEnabled = false
+
 RagebotSection1:AddToggle({
-    Name = "Auto Fire", Flag = "Ragebot_AutoFire", Default = false,
+    Name = "Enabled Rage", Flag = "Ragebot_Enabled", Default = false,
     Callback = function(v)
-        if v then
-            if not getgenv().StartAutoFire then
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/santos007xs/script/refs/heads/main/autofire.lua"))()
-            end
-            getgenv().StartAutoFire(RagebotTarget)
-        else
+        RagebotEnabled = v
+        if not v then
+            RagebotStrafeEnabled = false
+            RagebotTarget = nil
+            -- Para o auto fire
             if getgenv().StopAutoFire then
                 getgenv().StopAutoFire()
             end
         end
     end,
 });
+
+-- Ativa strafe + auto fire quando pressiona a keybind com mouse em cima de um player
+local rageMouseConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed or not RagebotEnabled then return end
+    
+    if input.KeyCode == RagebotMouseKeybind then
+        local targetPlayer = nil
+        local mousePos = UserInputService:GetMouseLocation()
+        
+        local unitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y)
+        
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        
+        local result = workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, raycastParams)
+        
+        if result then
+            local hitChar = result.Instance:FindFirstAncestorOfClass("Model")
+            targetPlayer = hitChar and Players:GetPlayerFromCharacter(hitChar)
+        end
+        
+        if targetPlayer and targetPlayer ~= LocalPlayer then
+            RagebotTarget = targetPlayer
+            RagebotStrafeEnabled = true
+            RagebotStrafeAngle = 0
+            
+            -- Inicia auto fire
+            if not getgenv().StartAutoFire then
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/santos007xs/script/refs/heads/main/autofire.lua"))()
+            end
+            getgenv().StartAutoFire(targetPlayer)
+            
+            Notifier:Notify({
+                Title = "Ragebot",
+                Content = "Strafe + AutoFire: " .. targetPlayer.Name,
+                Duration = 2,
+            })
+        else
+            RagebotStrafeEnabled = false
+            RagebotTarget = nil
+            -- Para o auto fire
+            if getgenv().StopAutoFire then
+                getgenv().StopAutoFire()
+            end
+        end
+    end
+end)
+table.insert(_G.CompkillerConnections, rageMouseConn)
 
 local RagebotStrafeEnabled = false
 local RagebotStrafeRadius = 5
@@ -1199,13 +1248,7 @@ end
 end)
 table.insert(_G.CompkillerConnections, strafeConn)
 
-RagebotSection1:AddToggle({
-    Name = "Target Strafe", Flag = "Ragebot_Strafe", Default = false,
-    Callback = function(v)
-        RagebotStrafeEnabled = v
-        RagebotStrafeAngle = 0
-    end,
-});
+
 
 RagebotSection4:AddDropdown({
     Name = "Strafe Position",
@@ -1273,7 +1316,7 @@ local function ApplyNoClip(enabled)
 end
 
 RagebotSection4:AddSlider({
-    Name = "Strafe Speed", Min = 1, Max = 20, Default = 5, Round = 0, Flag = "Ragebot_StrafeSpeed",
+    Name = "Strafe Speed", Min = 1, Max = 100, Default = 5, Round = 0, Flag = "Ragebot_StrafeSpeed",
     Callback = function(v)
         RagebotStrafeSpeed = v
     end,
@@ -1456,63 +1499,8 @@ end)
 table.insert(_G.CompkillerConnections, ragebotShowConn)
 
 -- Player List --
-local RagebotDropdown = nil
 
-local function RefreshPlayerList()
-    RagebotPlayerNames = {}
-    for _, player in pairs(Players:GetPlayers()) do
-        if player == LocalPlayer then continue end
-        table.insert(RagebotPlayerNames, player.Name)
-    end
 
-    if RagebotDropdown then
-        pcall(function()
-            RagebotDropdown:SetValues(RagebotPlayerNames)
-        end)
-    end
-end
-
-RefreshPlayerList()
-
-RagebotDropdown = RagebotSection2:AddDropdown({
-    Name = "Select Target",
-    Default = "",
-    Flag = "Ragebot_Target",
-    Values = RagebotPlayerNames,
-    Callback = function(v)
-        for _, player in pairs(Players:GetPlayers()) do
-            if player.Name == v then
-                RagebotTarget = player
-                Notifier:Notify({
-                    Title = "Ragebot",
-                    Content = "Target: " .. player.Name,
-                    Duration = 2,
-                })
-                break
-            end
-        end
-    end,
-});
-
-RagebotSection2:AddButton({
-    Name = "Refresh",
-    Callback = function()
-        RefreshPlayerList()
-    end,
-});
-
-Players.PlayerAdded:Connect(function()
-    task.wait(1)
-    RefreshPlayerList()
-end)
-
-Players.PlayerRemoving:Connect(function()
-    task.wait(0.5)
-    RefreshPlayerList()
-end)
-
-Players.PlayerAdded:Connect(RefreshPlayerList)
-Players.PlayerRemoving:Connect(RefreshPlayerList)
 
 local RagebotTraceEnabled = false
 local RagebotTraceLine = Drawing.new("Line")
