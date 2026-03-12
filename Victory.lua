@@ -1634,7 +1634,74 @@ local EspTab = Window:DrawTab({
 local EspSection = EspTab:DrawSection({ Name = "ESP", Position = "left" });
 local EspConfigSection = EspTab:DrawSection({ Name = "ESP Configurations", Position = "right" });
 
+EspSection:AddToggle({
+    Name = "ESP Hitbox", Flag = "Esp_Hitbox", Default = false,
+    Callback = function(v)
+        if v then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then CreateEspHitbox(player) end
+            end
+        else
+            for player, _ in pairs(EspHitboxData) do
+                RemoveEspHitbox(player)
+            end
+        end
+    end,
+});
 
+local EspHitboxData = {}
+
+local function RemoveEspHitbox(player)
+    local data = EspHitboxData[player]
+    if not data then return end
+    if data.selBox then pcall(function() data.selBox:Destroy() end) end
+    EspHitboxData[player] = nil
+end
+
+local function CreateEspHitbox(player)
+    if player == LocalPlayer then return end
+    RemoveEspHitbox(player)
+
+    local char = player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+
+    local data = {}
+    local selBox = Instance.new("SelectionBox")
+    selBox.Adornee = root
+    selBox.Color3 = Color3.fromRGB(255, 0, 0)
+    selBox.LineThickness = 0.03
+    selBox.SurfaceTransparency = 0
+    selBox.Parent = root
+
+    data.selBox = selBox
+    EspHitboxData[player] = data
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer and player.Character then
+        CreateEspHitbox(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Wait()
+    task.wait(0.5)
+    CreateEspHitbox(player)
+end)
+
+Players.PlayerRemoving:Connect(RemoveEspHitbox)
+
+EspConfigSection:AddColorPicker({
+    Name = "ESP Hitbox Color", Default = Color3.fromRGB(255, 0, 0), Flag = "Esp_HitboxColor",
+    Callback = function(v)
+        for player, data in pairs(EspHitboxData) do
+            if data.selBox then
+                data.selBox.Color3 = v
+            end
+        end
+    end,
+});
 
 local WorldTab = Window:DrawTab({
     Name = "World", Icon = "globe", Type = "Double", EnableScrolling = true
@@ -2060,41 +2127,7 @@ local WalkspeedTab = Window:DrawTab({
 local WalkspeedSection = WalkspeedTab:DrawSection({ Name = "Walkspeed", Position = "left" });
 local WalkspeedConfigSection = WalkspeedTab:DrawSection({ Name = "Walkspeed Configurations", Position = "right" });
 
-local WalkspeedToggle = WalkspeedSection:AddToggle({
-    Name = "Walkspeed", Flag = "Walkspeed_Toggle", Default = false,
-    Callback = function(v)
-        WalkspeedEnabled = v
-        ApplyWalkspeed(v)
-    end,
-});
 
-local WalkspeedMode = "Velocity" -- padrão
-
-WalkspeedConfigSection:AddDropdown({
-    Name = "Walkspeed Mode",
-    Default = "Velocity",
-    Flag = "Walkspeed_Mode",
-    Values = {"Velocity", "CFrame"},
-    Callback = function(v)
-        WalkspeedMode = v
-    end,
-});
-
-
-
-WalkspeedConfigSection:AddSlider({
-    Name = "Walkspeed", Min = 16, Max = 1000, Default = 16, Round = 0, Flag = "Walkspeed_Value",
-    Callback = function(v)
-        getgenv().WalkSpeedValue = v
-        if WalkspeedEnabled then
-            local char = LocalPlayer.Character
-            if char then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum then hum.WalkSpeed = v end
-            end
-        end
-    end
-});
 
 local FlyTab = Window:DrawTab({
     Name = "Fly", Icon = "plane", Type = "Double", EnableScrolling = true
