@@ -45,6 +45,33 @@ local SilentAimSection = AimbotTab:Separator({
 	Text = "Silent Aim"
 })
 
+--// VISUAL TAB
+local VisualTab = Window:CreateTab({
+	Name = "Visual"
+})
+
+local ESPSection = VisualTab:TreeNode({
+	Title = "ESP",
+	Open = true
+})
+
+local ChamsSection = VisualTab:TreeNode({
+	Title = "Chams",
+	Open = true
+})
+
+--// MISC TAB
+local MiscTab = Window:CreateTab({
+	Name = "Misc"
+})
+
+local WalkspeedSection = MiscTab:TreeNode({
+	Title = "Walkspeed",
+	Open = true
+})
+
+Window:ShowTab(AimbotTab)
+
 --// SILENT AIM SETUP
 local Aiming = loadstring(game:HttpGet("https://raw.githubusercontent.com/RapperDeluxe/scripts/main/silent%20aim%20module"))()
 Aiming.TeamCheck(false)
@@ -170,19 +197,6 @@ local TargetPartCombo = AimbotTab:Combo({
 
 
 
---// VISUAL TAB
-local VisualTab = Window:CreateTab({
-	Name = "Visual"
-})
-
-local ESPSection = VisualTab:Separator({
-	Text = "ESP"
-})
-
-local ChamsSection = VisualTab:Separator({
-	Text = "Chams"
-})
-
 --// ESP HITBOX VARIABLES
 local HitboxEnabled = false
 local HitboxColor = Color3.fromRGB(128, 128, 128)
@@ -195,8 +209,8 @@ local function RemoveHitbox(player)
 	if data.part then
 		pcall(function() data.part:Destroy() end)
 	end
-	if data.selBox then
-		pcall(function() data.selBox:Destroy() end)
+	if data.highlight then
+		pcall(function() data.highlight:Destroy() end)
 	end
 	HitboxData[player] = nil
 end
@@ -232,26 +246,27 @@ local function CreateHitbox(player)
 	part.CFrame = root.CFrame
 	part.Parent = root
 	
-	-- SelectionBox para visualizar o quadrado
-	local selBox = Instance.new("SelectionBox")
-	selBox.Adornee = part
-	selBox.Color3 = HitboxColor
-	selBox.LineThickness = 0.05
-	selBox.SurfaceTransparency = 0.7
-	selBox.Visible = HitboxEnabled
-	selBox.Parent = part
+	-- Highlight para ver através de paredes
+	local hl = Instance.new("Highlight")
+	hl.FillColor = HitboxColor
+	hl.FillTransparency = 0.4
+	hl.OutlineColor = HitboxColor
+	hl.OutlineTransparency = 0
+	hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	hl.Enabled = HitboxEnabled
+	hl.Parent = char
 	
 	data.part = part
-	data.selBox = selBox
+	data.highlight = hl
 	HitboxData[player] = data
 end
 
 local function RefreshAllHitboxes()
 	for player, data in pairs(HitboxData) do
-		if data.part and data.selBox then
-			data.selBox.Visible = HitboxEnabled
-			data.selBox.Color3 = HitboxColor
-			data.part.Size = Vector3.new(HitboxSize, HitboxSize, HitboxSize)
+		if data.highlight then
+			data.highlight.Enabled = HitboxEnabled
+			data.highlight.FillColor = HitboxColor
+			data.highlight.OutlineColor = HitboxColor
 		end
 	end
 end
@@ -282,9 +297,9 @@ end)
 Players.PlayerRemoving:Connect(RemoveHitbox)
 
 --// ESP HITBOX UI
-VisualTab:Checkbox({
-	Label = "ESP Hitbox",
-	Value = true,
+ESPSection:Checkbox({
+	Label = "Hitbox",
+	Value = false,
 	Callback = function(self, Value)
 		HitboxEnabled = Value
 		if Value then
@@ -300,17 +315,6 @@ VisualTab:Checkbox({
 		end
 		RefreshAllHitboxes()
 	end,
-})
-
-print("UI carregada!")
-
---// MISC TAB
-local MiscTab = Window:CreateTab({
-	Name = "Misc"
-})
-
-local WalkspeedSection = MiscTab:Separator({
-	Text = "Walkspeed"
 })
 
 --// WALKSPEED VARIABLES
@@ -332,7 +336,9 @@ local function ApplyWalkspeed(enabled)
 	if enabled then
 		hum.WalkSpeed = WalkspeedValue
 		WalkspeedConnection = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-			hum.WalkSpeed = WalkspeedValue
+			if hum then
+				hum.WalkSpeed = WalkspeedValue
+			end
 		end)
 	else
 		hum.WalkSpeed = 16
@@ -340,14 +346,14 @@ local function ApplyWalkspeed(enabled)
 end
 
 LocalPlayer.CharacterAdded:Connect(function()
-	task.wait(0.5)
+	task.wait(0.3)
 	if WalkspeedEnabled then
 		ApplyWalkspeed(true)
 	end
 end)
 
 --// WALKSPEED UI
-MiscTab:Checkbox({
+WalkspeedSection:Checkbox({
 	Label = "Walkspeed",
 	Value = false,
 	Callback = function(self, Value)
@@ -356,7 +362,7 @@ MiscTab:Checkbox({
 	end,
 })
 
-MiscTab:ProgressSlider({
+WalkspeedSection:ProgressSlider({
 	Label = "Velocity",
 	Value = 16,
 	MinValue = 16,
@@ -369,7 +375,7 @@ MiscTab:ProgressSlider({
 	end,
 })
 
-MiscTab:Keybind({
+WalkspeedSection:Keybind({
 	Label = "Toggle Walkspeed",
 	Value = Enum.KeyCode.V,
 	Callback = function(self, KeyCode)
@@ -377,3 +383,5 @@ MiscTab:Keybind({
 		ApplyWalkspeed(WalkspeedEnabled)
 	end,
 })
+
+print("UI carregada com sucesso!")
