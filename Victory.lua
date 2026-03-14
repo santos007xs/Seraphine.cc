@@ -354,23 +354,30 @@ local function ApplyWalkspeed(enabled)
         WalkspeedConnection:Disconnect()
         WalkspeedConnection = nil
     end
+    
     local char = LocalPlayer.Character
     if not char then return end
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
+    
     if enabled then
-        hum.WalkSpeed = getgenv().WalkSpeedValue
-        WalkspeedConnection = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            if WalkspeedMode == "Velocity" then
+        if WalkspeedMode == "Velocity" then
+            getgenv().WalkSpeedValue = getgenv().WalkSpeedValue or 40
+            hum.WalkSpeed = getgenv().WalkSpeedValue
+            WalkspeedConnection = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
                 hum.WalkSpeed = getgenv().WalkSpeedValue
-            elseif WalkspeedMode == "CFrame" then
-                local root = char:FindFirstChild("HumanoidRootPart")
-                if root then
-                    local moveDirection = hum.MoveDirection
-                    root.CFrame = root.CFrame + moveDirection * (getgenv().WalkSpeedValue / 60)
-                end
+            end)
+        elseif WalkspeedMode == "CFrame" then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                WalkspeedConnection = RunService.Heartbeat:Connect(function()
+                    if root and root.Parent and hum then
+                        local moveDirection = hum.MoveDirection
+                        root.CFrame = root.CFrame + moveDirection * (getgenv().WalkSpeedValue / 60)
+                    end
+                end)
             end
-        end)
+        end
     else
         hum.WalkSpeed = 16
     end
