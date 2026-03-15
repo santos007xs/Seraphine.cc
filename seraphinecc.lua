@@ -195,6 +195,272 @@ local TargetPartCombo = AimbotTab:Combo({
 	end,
 })
 
+--// CAMLOCK SECTION
+local CamlockSection = AimbotTab:TreeNode({
+	Title = "Camlock",
+	Open = true
+})
+
+--// CAMLOCK VARIABLES
+local CamlockEnabled = false
+local CamlockFovEnabled = false
+local CamlockSmooth = 10
+local CamlockFovSize = 100
+local CamlockTarget = nil
+local CamlockVisibleCheck = false
+local CamlockDistanceEnabled = false
+local CamlockMaxDistance = 500
+local CamlockBodyPart = "HumanoidRootPart"
+local CamlockKoCheck = false
+
+local FovCircle = Drawing.new("Circle")
+FovCircle.Visible = false
+FovCircle.Thickness = 1
+FovCircle.Filled = false
+FovCircle.Color = Color3.fromRGB(255, 255, 255)
+
+local function GetScreenCenter()
+	return Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+end
+
+local function GetTargetPart(char)
+	if not char then return nil end
+	local part = char:FindFirstChild(CamlockBodyPart)
+	if not part then
+		part = char:FindFirstChild("HumanoidRootPart")
+	end
+	return part
+end
+
+local function IsVisible(targetPart)
+	if not targetPart then return false end
+	local rayOrigin = camera.CFrame.Position
+	local rayDirection = targetPart.Position - rayOrigin
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+	local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+	if result then
+		local hitChar = result.Instance:FindFirstAncestorOfClass("Model")
+		local hitPlayer = hitChar and Players:GetPlayerFromCharacter(hitChar)
+		if hitPlayer then return true else return false end
+	end
+	return true
+end
+
+local function IsAlive(player)
+	if not player then return false end
+	local char = player.Character
+	if not char then return false end
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then return false end
+	if hum:GetState() == Enum.HumanoidStateType.Dead then return false end
+	if hum.Health <= 0 then return false end
+	return true
+end
+
+local function GetClosestPlayerInFov()
+	if CamlockTarget then
+		local char = CamlockTarget.Character
+		local part = GetTargetPart(char)
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if part and hum and hum.Health > 0 then
+			if CamlockKoCheck and not IsAlive(CamlockTarget) then
+				CamlockTarget = nil
+			else
+				return CamlockTarget
+			end
+		else
+			CamlockTarget = nil
+		end
+	end
+
+	local closest = nil
+	local closestDist = math.huge
+	local screenCenter = GetScreenCenter()
+
+	for _, player in pairs(Players:GetPlayers()) do
+		if player == LocalPlayer then continue end
+		if CamlockKoCheck and not IsAlive(player) then continue end
+
+		local char = player.Character
+		local part = GetTargetPart(char)
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if not part or not hum or hum.Health <= 0 then continue end
+
+		if CamlockDistanceEnabled then
+			local worldDist = (camera.CFrame.Position - part.Position).Magnitude
+			if worldDist > CamlockMaxDistance then continue end
+		end
+
+		local screenPos, onScreen = camera:WorldToViewportPoint(part.Position)
+		if not onScreen then continue end
+
+		local screenDist = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+		if screenDist < CamlockFovSize and screenDist < closestDist then
+			closestDist = screenDist
+			closest = player
+		end
+	end
+
+	CamlockTarget = closest
+	return closest
+end
+
+local camlockConn = RunService.Heartbeat:Connect(function()
+	local screenCenter = GetScreenCenter()
+	FovCircle.Visible = CamlockFovEnabled
+	FovCircle.Position = screenCenter
+	FovCircle.Radius = CamlockFovSize
+
+	if not CamlockEnabled then
+		CamlockTarget = nil
+		return
+	end
+
+	if CamlockKoCheck and CamlockTarget and not IsAlive(CamlockTarget) then
+		CamlockTarget = nil
+		return
+	end
+
+	local target = GetClosestPlayerInFov()
+	if not target then
+		return
+	end
+
+	local char = target.Character
+	local part = GetTargetPart(char)
+	if not part then return end
+
+	local targetCFrame = CFrame.new(camera.CFrame.Position, part.Position)
+	camera.CFrame = camera.CFrame:Lerp(targetCFrame, 1 / CamlockSmooth)
+end)
+
+--// CAMLOCK UI SECTION
+CamlockSection:Checkbox({
+	Label = "Camlock",
+	Value = false,
+	Callback = function(self, Value)
+		CamlockEnabled = Value
+		if not Value then
+			CamlockTarget = nil
+		end
+	end,
+})
+
+CamlockSection:Checkbox({
+	Label = "FOV Circle",
+	Value = false,
+	Callback = function(self, Value)
+		CamlockFovEnabled = Value
+	end,
+})
+
+CamlockSection:Checkbox({
+	Label = "KO Check",
+	Value = false,
+	Callback = function(self, Value)
+		CamlockKoCheck = Value
+		if Value and CamlockTarget and not IsAlive(CamlockTarget) then
+			CamlockTarget = nil
+		end
+	end,
+})
+
+CamlockSection:ProgressSlider({
+	Label = "Smooth",
+	Value = 10,
+	MinValue = 1,
+	MaxValue = 50,
+	Callback = function(self, Value)
+		CamlockSmooth = Value
+	end,
+})
+
+CamlockSection:ProgressSlider({
+	Label = "FOV Size",
+	Value = 100,
+	MinValue = 10,
+	MaxValue = 500,
+	Callback = function(self, Value)
+		CamlockFovSize = Value
+	end,
+})
+
+CamlockSection:Combo({
+	Selected = "HumanoidRootPart",
+	Label = "Target Part",
+	Items = {
+		"HumanoidRootPart",
+		"Head",
+		"UpperTorso",
+		"LowerTorso",
+		"Left Arm",
+		"Right Arm",
+		"Left Leg",
+		"Right Leg",
+	},
+	Callback = function(self, Value)
+		CamlockBodyPart = Value
+		CamlockTarget = nil
+	end,
+})
+
+--// CAMLOCK KEYBIND VARIABLES
+local CamlockKeybindMode = "Toggle"
+local CamlockKeybind = Enum.KeyCode.X
+local CamlockKeyPressed = false
+
+--// CAMLOCK MODE DROPDOWN
+CamlockSection:Combo({
+	Selected = "Toggle",
+	Label = "Mode",
+	Items = {
+		"Toggle",
+		"Hold"
+	},
+	Callback = function(self, Value)
+		CamlockKeybindMode = Value
+	end,
+})
+
+--// CAMLOCK KEYBIND
+CamlockSection:Keybind({
+	Label = "Keybind",
+	Value = Enum.KeyCode.X,
+	Callback = function(self, KeyCode)
+		CamlockKeybind = KeyCode
+	end,
+})
+
+--// HANDLE CAMLOCK KEYBIND INPUT
+local function HandleCamlockKeybind(input, began)
+	if input.KeyCode == CamlockKeybind then
+		if began then
+			CamlockKeyPressed = true
+			if CamlockKeybindMode == "Toggle" then
+				CamlockEnabled = not CamlockEnabled
+			elseif CamlockKeybindMode == "Hold" then
+				CamlockEnabled = true
+			end
+		else
+			CamlockKeyPressed = false
+			if CamlockKeybindMode == "Hold" then
+				CamlockEnabled = false
+			end
+		end
+	end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	HandleCamlockKeybind(input, true)
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+	HandleCamlockKeybind(input, false)
+end)
+
 
 
 --// ESP HITBOX VARIABLES
@@ -366,7 +632,7 @@ WalkspeedSection:ProgressSlider({
 	Label = "Velocity",
 	Value = 16,
 	MinValue = 16,
-	MaxValue = 500,
+	MaxValue = 1000,
 	Callback = function(self, Value)
 		WalkspeedValue = Value
 		if WalkspeedEnabled then
