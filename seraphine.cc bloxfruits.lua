@@ -498,6 +498,78 @@ JumpBox:AddSlider('JumpPowerValue', {
     end,
 })
 
+lua-- =============================================
+--  SERVER
+-- =============================================
+
+local ServerBox = Tabs.Misc:AddRightGroupbox('Server')
+
+local TeleportService = game:GetService('TeleportService')
+
+ServerBox:AddInput('JobIdInput', {
+    Default     = '',
+    Numeric     = false,
+    Finished    = false,
+    Text        = 'Job ID',
+    Placeholder = 'Cole o Job ID aqui',
+})
+
+ServerBox:AddButton({
+    Text = 'Copy Job ID',
+    Func = function()
+        pcall(function()
+            setclipboard(game.JobId)
+        end)
+        Library:Notify('Job ID copiado!', 3)
+    end,
+})
+
+ServerBox:AddButton({
+    Text = 'Join Job ID',
+    Func = function()
+        local jobId = Options.JobIdInput.Value
+        if jobId == '' then
+            Library:Notify('Digite um Job ID!', 3)
+            return
+        end
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LocalPlayer)
+        end)
+    end,
+})
+
+ServerBox:AddButton({
+    Text = 'Rejoin',
+    Func = function()
+        pcall(function()
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        end)
+    end,
+})
+
+ServerBox:AddButton({
+    Text = 'Hop Server',
+    Func = function()
+        pcall(function()
+            local HttpService = game:GetService('HttpService')
+            local servers = {}
+            local url = 'https://games.roblox.com/v1/games/' .. game.PlaceId .. '/servers/Public?sortOrder=Asc&limit=100'
+            local result = HttpService:JSONDecode(game:HttpGet(url))
+            for _, server in pairs(result.data) do
+                if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                    table.insert(servers, server.id)
+                end
+            end
+            if #servers == 0 then
+                Library:Notify('Nenhum servidor disponível!', 3)
+                return
+            end
+            local picked = servers[math.random(1, #servers)]
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, picked, LocalPlayer)
+        end)
+    end,
+})
+
 -- =============================================
 --  ABA UI SETTINGS
 -- =============================================
